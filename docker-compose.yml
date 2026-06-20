@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Service Database PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: nyc_taxi_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: nyc_taxi_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Service Aplikasi Web API
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: nyc_taxi_api
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=yourpassword
+      - DB_NAME=nyc_taxi_db
+      - MODEL_DIR=/app
+
+  # Service Frontend Streamlit
+  streamlit:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.streamlit
+    container_name: nyc_taxi_streamlit
+    restart: always
+    ports:
+      - "8501:8501"
+    depends_on:
+      - web
+    environment:
+      - API_URL=http://web:8000
+
+volumes:
+  pgdata:
