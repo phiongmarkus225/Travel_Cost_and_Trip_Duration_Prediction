@@ -1,6 +1,6 @@
 # 🚕 NYC Taxi Fare & Duration Predictor
 
-Proyek ini adalah sistem prediksi multi-output komprehensif untuk mengestimasi **Tarif Total (`total_amount`)** dan **Durasi Perjalanan (`duration_min`)** taksi New York City (NYC). Proyek ini menggabungkan integrasi database PostgreSQL, pelatihan model Machine Learning (XGBoost) dan Deep Learning (PyTorch MLP), penyajian API menggunakan FastAPI, serta antarmuka visual interaktif berbasis Streamlit. Seluruh arsitektur dikontainerisasi menggunakan Docker.
+Proyek ini adalah sistem prediksi multi-output komprehensif untuk mengestimasi **Tarif Total (`total_amount`)** dan **Durasi Perjalanan (`duration_min`)** taksi New York City (NYC). Proyek ini menggabungkan integrasi database PostgreSQL, pelatihan model Machine Learning (XGBoost) dan Deep Learning (PyTorch MLP), penyajian API menggunakan FastAPI, serta antarmuka visual interaktif berbasis Streamlit. 
 
 ---
 
@@ -8,6 +8,8 @@ Proyek ini adalah sistem prediksi multi-output komprehensif untuk mengestimasi *
 
 ```directory
 Take_Home_Test/
+├── .streamlit/
+│   └── secrets.toml            # Konfigurasi rahasia Streamlit Cloud (API URL)
 ├── data/                       # Tempat penyimpanan dataset CSV (diabaikan oleh Git)
 ├── docker/                     # Berisi konfigurasi Dockerfile
 │   ├── Dockerfile              # Dockerfile untuk API (FastAPI)
@@ -22,8 +24,11 @@ Take_Home_Test/
 │   │   └── app.py              # API backend FastAPI
 │   └── frontend/
 │       └── app_streamlit.py    # Dashboard frontend Streamlit
+├── Dockerfile                  # Dockerfile untuk deploy FastAPI ke Railway.app
 ├── docker-compose.yml          # Konfigurasi orkestrasi container Docker
-├── requirements.txt            # Dependensi utama proyek
+├── requirements.api.txt        # Dependensi khusus API (FastAPI & Models)
+├── requirements.frontend.txt   # Dependensi khusus Streamlit
+├── requirements.txt            # Dependensi gabungan/utama proyek
 └── README.md                   # Dokumentasi proyek (file ini)
 ```
 
@@ -31,117 +36,76 @@ Take_Home_Test/
 
 ## 🚀 Cara Menjalankan Proyek
 
-Terdapat dua cara untuk menjalankan proyek ini: menggunakan **Docker Compose** (direkomendasikan) atau menjalankannya secara **Lokal (Manual)**.
+Terdapat tiga cara untuk menjalankan proyek ini: menggunakan **Docker Compose** (lokal), **Lokal (Manual)**, atau **Production Deployment (Cloud)**.
 
-### Kebutuhan Awal (Prerequisites)
-Pastikan Anda telah mengunduh dataset `NYC_Taxi_Cleaned_Analysis_Ready.csv` dan meletakkannya di direktori utama (root) proyek sebelum memulai.
+### Metode A: Menggunakan Docker Compose (Lokal)
 
----
-
-### Metode A: Menggunakan Docker Compose (Direkomendasikan)
-
-Dengan Docker Compose, Anda tidak perlu menginstal Python, PostgreSQL, atau library pendukung lainnya di komputer lokal Anda. Docker akan mengorkestrasi tiga layanan (Database, API, Frontend) secara otomatis.
+Docker akan mengorkestrasi tiga layanan (Database, API, Frontend) secara otomatis.
 
 1. **Jalankan Container Docker**
-   Buka terminal di direktori proyek dan jalankan perintah berikut:
    ```bash
    docker compose up --build
    ```
-
 2. **Akses Layanan**
-   Setelah semua container berjalan:
-   * **API Backend (FastAPI)**: Akses dokumentasi interaktif Swagger API di [http://localhost:8000/docs](http://localhost:8000/docs).
-   * **Frontend Dashboard (Streamlit)**: Buka browser dan akses [http://localhost:8501](http://localhost:8501).
-   * **Database (PostgreSQL)**: Berjalan di `localhost:5432` dengan user `postgres` dan database `nyc_taxi_db`.
+   * **API Backend (FastAPI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+   * **Frontend Dashboard (Streamlit)**: [http://localhost:8501](http://localhost:8501)
 
 ---
 
 ### Metode B: Menjalankan Secara Lokal (Manual)
 
-Jika Anda ingin menjalankan proyek di luar Docker (misalnya untuk development atau debugging):
-
 1. **Setup Virtual Environment & Install Dependensi**
    ```bash
-   # Membuat virtual environment
    python -m venv venv
-   
-   # Aktivasi virtual environment (Windows)
-   venv\Scripts\activate
-   
-   # Instalasi dependensi
+   venv\Scripts\activate # Windows
    pip install -r requirements.txt
    ```
-
-2. **Ingest Data ke PostgreSQL (Opsional)**
-   Pastikan Anda memiliki database PostgreSQL lokal yang sedang berjalan, kemudian sesuaikan kredensial di [scripts/db_ingest.py](file:///c:/Users/user/Downloads/Take_Home_Test/scripts/db_ingest.py) dan jalankan:
-   ```bash
-   python scripts/db_ingest.py
-   ```
-
-3. **Latih Model (Training)**
-   Script training akan memuat data dari PostgreSQL (atau fallback ke CSV lokal jika database tidak terjangkau) untuk melatih model XGBoost dan PyTorch MLP:
+2. **Latih Model (Training)**
    ```bash
    python scripts/train.py
    ```
-   Setelah selesai, file model (`model_ml_best.joblib`, `model_dl.pth`) dan scaler (`scaler.joblib`, `target_scaler.joblib`) akan tersimpan di direktori utama. Pindahkan/salin file-file tersebut ke folder `models/` agar terbaca oleh API.
+   *Pastikan file `.joblib` & `.pth` dipindahkan ke folder `models/` setelah training.*
+3. **Jalankan API Backend & Streamlit**
+   * Terminal 1: `uvicorn src.api.app:app --reload --port 8000`
+   * Terminal 2: `streamlit run src/frontend/app_streamlit.py`
 
-4. **Jalankan API Backend (FastAPI)**
-   ```bash
-   uvicorn src.api.app:app --reload --port 8000
+---
+
+### Metode C: Cloud Deployment (Production)
+
+Proyek ini telah dikonfigurasi untuk dipisah dideployments-nya:
+* **Backend API** di-deploy ke **Railway.app** menggunakan `Dockerfile` root.
+* **Frontend Streamlit** di-deploy ke **Streamlit Cloud** menggunakan `requirements.txt` yang sangat ramping agar build super cepat tanpa compile source code (tidak butuh Torch/Pandas di frontend).
+
+#### Langkah Konfigurasi Streamlit Cloud:
+1. Deploy repositori ke Streamlit Cloud dengan main module `src/frontend/app_streamlit.py`.
+2. Pada pengaturan aplikasi di Streamlit Cloud, buka **Secrets** dan tambahkan URL API backend Railway Anda:
+   ```toml
+   API_URL = "https://nama-aplikasi-anda.up.railway.app"
    ```
 
-5. **Jalankan Frontend (Streamlit)**
-   Buka terminal baru (pastikan venv aktif) dan jalankan:
-   ```bash
-   streamlit run src/frontend/app_streamlit.py
-   ```
+---
+
+## 💡 Fitur Terbaru Frontend Streamlit
+
+1. **Peta Zone Dropdown Interaktif**: Input lokasi pickup dan dropoff tidak lagi berupa angka ID yang membingungkan. Sekarang menggunakan dropdown nama zona resmi NYC TLC (265 zona lengkap) yang dapat dicari (searchable).
+2. **Auto-Calculate Jarak (Opsi B)**: Jarak perjalanan (`trip_distance`) dihitung secara otomatis menggunakan formula **Haversine** (jarak garis lurus) dari koordinat centroid zona pickup ke dropoff, kemudian dikalikan dengan faktor koreksi jalan raya perkotaan (**1.35x**).
+3. **Manual Override**: Pengguna tetap dapat mengubah estimasi jarak otomatis tersebut secara manual jika mengetahui rute jalan pintas/alternatif yang lebih spesifik.
 
 ---
 
 ## 🔌 Detail API Endpoints (FastAPI)
 
-Aplikasi backend mengekspos beberapa endpoint utama untuk menerima input perjalanan dan mengembalikan estimasi:
-
-* **`GET /`**
-  Mengembalikan status kesehatan API beserta jenis model yang digunakan.
-  
-* **`POST /predict`**
-  Menerima detail perjalanan baru dan mengembalikan hasil prediksi dari **XGBoost (ML)** dan **PyTorch MLP (DL)** sekaligus untuk perbandingan.
-  
-* **`POST /predict/ml`**
-  Hanya mengembalikan prediksi menggunakan model **XGBoost**.
-  
-* **`POST /predict/dl`**
-  Hanya mengembalikan prediksi menggunakan model **PyTorch MLP**.
-
-### Contoh Payload Input (JSON)
-Kirimkan payload dengan skema seperti berikut ke endpoint `/predict`:
-```json
-{
-  "VendorID": 2,
-  "passenger_count": 1.0,
-  "trip_distance": 5.4,
-  "RatecodeID": 1.0,
-  "store_and_fwd_flag": "N",
-  "PULocationID": 132,
-  "DOLocationID": 230,
-  "payment_type": 1,
-  "pickup_hour": 14,
-  "day_of_week": "Monday",
-  "hour_bucket": "Regular"
-}
-```
+* **`GET /`**: Mengembalikan status kesehatan API.
+* **`POST /predict`**: Mengembalikan hasil estimasi rute dari **XGBoost (ML)** dan **PyTorch MLP (DL)** sekaligus untuk perbandingan.
+* **`POST /predict/ml`**: Prediksi khusus menggunakan model **XGBoost**.
+* **`POST /predict/dl`**: Prediksi khusus menggunakan model **PyTorch MLP**.
 
 ---
 
 ## 🧠 Detail Pemodelan
 
-Aplikasi ini menggunakan pendekatan **Multi-Output Regression** karena memprediksi dua variabel target numerik secara simultan:
-
 1. **XGBoost Multi-Output Regressor**
-   * Model berbasis pohon keputusan (gradient boosting) yang sangat optimal untuk dataset tabular terstruktur.
-   * Dilatih langsung dengan target satuan asli.
-
+   * Sangat optimal untuk dataset terstruktur. Memprediksi tarif total dan durasi sekaligus.
 2. **PyTorch Multi-Layer Perceptron (MLP)**
-   * Menggunakan arsitektur Deep Learning: `Linear -> BatchNorm1d -> ReLU -> Dropout` di setiap layer tersembunyi untuk stabilitas pelatihan dan menghindari overfitting.
-   * Target dinormalisasi menggunakan `target_scaler.joblib` selama training dan dide-normalisasi kembali (inverse transform) saat inferensi/prediksi.
+   * Menggunakan arsitektur Deep Learning dengan layer `Linear -> BatchNorm1d -> ReLU -> Dropout` untuk stabilitas training.
