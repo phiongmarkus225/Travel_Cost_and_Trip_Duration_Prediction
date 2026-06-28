@@ -35,10 +35,10 @@ htmlcov/
 Thumbs.db
 db.sqlite3
 
-# Project-specific: Large datasets, model artifacts, and archives
+# Project-specific: Large datasets and archives (model artifacts ARE tracked for Railway deploy)
 data/
-models/
 *.zip
 *.csv
-*.joblib
-*.pth
+
+# Streamlit secrets (jangan di-push ke GitHub!)
+.streamlit/secrets.toml

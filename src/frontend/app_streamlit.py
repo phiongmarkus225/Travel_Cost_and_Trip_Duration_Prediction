@@ -65,7 +65,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # API Configuration
-API_URL = os.environ.get("API_URL", "http://localhost:8000")
+# Prioritas: Streamlit Secrets → env var → localhost (local dev)
+try:
+    API_URL = st.secrets["API_URL"]
+except Exception:
+    API_URL = os.environ.get("API_URL", "http://localhost:8000")
 
 # Header Section
 st.markdown("""
