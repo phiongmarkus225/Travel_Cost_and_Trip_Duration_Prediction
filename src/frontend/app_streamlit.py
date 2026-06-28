@@ -71,6 +71,10 @@ try:
 except Exception:
     API_URL = os.environ.get("API_URL", "http://localhost:8000")
 
+# Pastikan API_URL memiliki scheme (https:// atau http://)
+if API_URL and not API_URL.startswith(("http://", "https://")):
+    API_URL = "https://" + API_URL
+
 # Header Section
 st.markdown("""
 <div class="title-container">
