@@ -109,3 +109,6 @@ Proyek ini telah dikonfigurasi untuk dipisah dideployments-nya:
    * Sangat optimal untuk dataset terstruktur. Memprediksi tarif total dan durasi sekaligus.
 2. **PyTorch Multi-Layer Perceptron (MLP)**
    * Menggunakan arsitektur Deep Learning dengan layer `Linear -> BatchNorm1d -> ReLU -> Dropout` untuk stabilitas training.
+
+## LINK
+https://travelcostandtripdurationprediction-pmm.streamlit.app/
