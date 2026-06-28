@@ -1,2 +1,13 @@
-streamlit==1.45.0
+fastapi==0.111.0
+uvicorn==0.30.1
+pandas==2.2.2
+numpy==1.26.4
+joblib==1.4.2
+scikit-learn==1.7.2
+sqlalchemy==2.0.30
+psycopg2-binary==2.9.9
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+streamlit==1.35.0
 requests==2.32.3
+xgboost==3.2.0

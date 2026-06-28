@@ -23,9 +23,7 @@ Take_Home_Test/
 │   └── frontend/
 │       └── app_streamlit.py    # Dashboard frontend Streamlit
 ├── docker-compose.yml          # Konfigurasi orkestrasi container Docker
-├── requirements.txt            # Dependensi frontend Streamlit (untuk deploy Streamlit Cloud)
-├── requirements.api.txt        # Dependensi backend API & ML/DL modeling
-├── requirements.frontend.txt   # Dependensi frontend Streamlit (salinan)
+├── requirements.txt            # Dependensi utama proyek
 └── README.md                   # Dokumentasi proyek (file ini)
 ```
 
@@ -70,8 +68,8 @@ Jika Anda ingin menjalankan proyek di luar Docker (misalnya untuk development at
    # Aktivasi virtual environment (Windows)
    venv\Scripts\activate
    
-   # Instalasi dependensi (untuk backend API, ML/DL modeling, dan frontend)
-   pip install -r requirements.api.txt -r requirements.frontend.txt
+   # Instalasi dependensi
+   pip install -r requirements.txt
    ```
 
 2. **Ingest Data ke PostgreSQL (Opsional)**
